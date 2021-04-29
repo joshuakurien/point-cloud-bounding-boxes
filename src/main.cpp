@@ -37,12 +37,14 @@ int main (int argc, char** argv) {
   }
 
   Filter filter;
-  pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
+  filter.distance(cloud);
+  filter.voxel(cloud);
   
-  RangeImage range_image(cloud, 1, 1, 1, 1);
+  const double kFovUp = 2.0, kFovDown = 24.8, kImageWidth = 1024.0, kImageHeight = 64.0;
+  RangeImage range_image(cloud, kFovUp, kFovDown, kImageWidth, kImageHeight);
   range_image.displayImage();
-  // auto range_image = projectToRangeImage(cloud);
 
+  // pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
   // Main viewer loop
   // while (!viewer->wasStopped ())
   // {

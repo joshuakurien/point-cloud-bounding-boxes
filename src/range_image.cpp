@@ -2,45 +2,23 @@
 #include <range_image.h>
 
 RangeImage::RangeImage (pcl::PointCloud<PointT>::Ptr cloud_input, 
-           float hor_res_input, float ver_res_input, 
-           float image_width_input, float image_height_input) :
-           cloud_data{cloud_input}, max_hor_resolution{hor_res_input}, max_ver_resolution{ver_res_input}, 
+           double fov_up_input, double fov_down_input, 
+           double image_width_input, double image_height_input) :
+           cloud_data{cloud_input}, fov_up{std::abs(fov_up_input/180*M_PI)}, fov_down{std::abs(fov_down_input/180*M_PI)}, 
            image_width{image_width_input}, image_height{image_height_input}
 {
-  image_data.assign(64, std::vector<std::vector<double>>(1024, std::vector<double>(5, 0.0)));
+  image_data.assign(image_height, std::vector<std::vector<double>>(image_width, std::vector<double>(5, 0.0)));
   convertToImage();
 }
 
 void RangeImage::convertToImage() {
-  double fov_up_rad = (2 / 180) * M_PI;
-  double fov_down_rad = (24.8 / 180) * M_PI;
-  double fov_rad = std::abs(fov_up_rad) + std::abs(fov_down_rad);
-  
   for (auto &point : *cloud_data) {
-    int pixel_v = 0;
-    int pixel_u = 0;
-    double range = 0.0;
-    range = sqrt(point.x* point.x + point.y * point.y + point.z * point.z);
-    //  Getting the angle of all the Points
+    double euc_distance = sqrt(pow(point.x,2) + pow(point.y,2) + pow(point.z,2));
     auto yaw = atan2(point.y, point.x);
-    auto pitch = asin(point.z / range);
-    // Get projections in image coords and normalizing
-    double v = 0.5 * (yaw / M_PI + 1.0);
-    double u = 1.0 - (pitch + std::abs(fov_down_rad)) / fov_rad;
-    // Scaling as per the lidar config given
-    v *= 1024;
-    u *= 64;
-    // round and clamp for use as index
-    v = floor(v);
-    v = std::min(1024.0-1, v);
-    v = std::max(0.0, v);
-    pixel_v = int(v);
-
-    u = floor(u);
-    u = std::min(64.0-1, u);
-    u = std::max(0.0, u);
-    pixel_u = int(u);
-    image_data.at(pixel_u).at(pixel_v) = std::vector<double>{point.x, point.y, point.z, range, point.intensity};
+    auto pitch = asin(point.z / euc_distance);
+    int pixel_x = getPixelX(yaw);
+    int pixel_y = getPixelY(pitch);
+    image_data.at(pixel_y).at(pixel_x) = std::vector<double>{point.x, point.y, point.z, euc_distance, point.intensity};
   }
 }
 
@@ -51,6 +29,22 @@ void RangeImage::displayImage() {
           display_image.at<double>(i, j) = image_data.at(i).at(j).at(4);  // Intensity value
       }
   }
-  cv::imshow("Intensity Image", display_image);
+  cv::imshow("Range Image", display_image);
   cv::waitKey(0);
+}
+
+int RangeImage::getPixelX(const double &yaw) {
+  double x = image_width*(0.5 * (yaw / M_PI + 1.0));
+  x = floor(x);
+  x = std::min(image_width-1, x);
+  x = std::max(0.0, x);
+  return static_cast<int>(x);
+}
+
+int RangeImage::getPixelY(const double &pitch) {
+  double y = image_height*(1.0 - (pitch + std::abs(fov_down)) / (fov_down + fov_up));
+  y = floor(y);
+  y = std::min(image_height-1, y);
+  y = std::max(0.0, y);
+  return static_cast<int>(y);
 }
