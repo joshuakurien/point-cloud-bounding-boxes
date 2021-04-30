@@ -1,19 +1,12 @@
 #include <range_image.h>
 
 RangeImage::RangeImage (pcl::PointCloud<PointT>::Ptr cloud_input, 
-           double fov_up_input, double fov_down_input, 
-           double image_width_input, double image_height_input) :
-           cloud_data{cloud_input}, fov_up{std::abs(fov_up_input/180*M_PI)}, fov_down{std::abs(fov_down_input/180*M_PI)}, 
-           image_width{image_width_input}, image_height{image_height_input}
-{
-  range_image = cv::Mat(image_height, image_width, CV_64FC1);
-  range_image_pixel_data.assign(image_height, std::vector<RangePixelData>(image_width, RangePixelData()));
-  convertToImage();
-  getAngleImage();
-  smoothenAngleImage();
+  double fov_up_input, double fov_down_input, double image_width_input, double image_height_input) :
+  cloud_data{cloud_input}, fov_up{std::abs(fov_up_input/180*M_PI)}, fov_down{std::abs(fov_down_input/180*M_PI)}, 
+  image_width{image_width_input}, image_height{image_height_input} {
 }
 
-void RangeImage::getAngleImage() {
+void RangeImage::angleImageConversion() {
   angle_image = cv::Mat(image_height - 1, image_width, CV_64FC1);
   for (int i = 0; i < image_height - 1; ++i) {
     for (int j = 0; j < image_width; ++j) {
@@ -91,40 +84,45 @@ void RangeImage::smoothenAngleImage() {
       kernel /= 429.0f;
   }
 
-  const cv::Point ANCHOR_CENTER = cv::Point(-1, -1);
-  const int SAME_OUTPUT_TYPE = -1;
-  cv::filter2D(angle_image, angle_image, SAME_OUTPUT_TYPE, kernel, ANCHOR_CENTER,
-               0, cv::BORDER_REFLECT101);
+  if (!angle_image.empty()) {
+    const cv::Point ANCHOR_CENTER = cv::Point(-1, -1);
+    const int SAME_OUTPUT_TYPE = -1;
+    cv::filter2D(angle_image, angle_image, SAME_OUTPUT_TYPE, kernel, ANCHOR_CENTER,
+                0, cv::BORDER_REFLECT101);
+  }
 }
 
-void RangeImage::displayImage(bool is_angle) {
-  if (!is_angle) {
+void RangeImage::displayImage(bool display_range_image) {
+  if (display_range_image && !range_image.empty()) {
     cv::imshow("Range Image", range_image/maxEuclideanDistance);
-  } else {
+  } else if (!angle_image.empty()) {
     cv::imshow("Angle Image", angle_image/maxAlpha);
   }
   cv::waitKey(0);
 }
 
-void RangeImage::convertToImage() {
-  for (auto &point : *cloud_data) {
+void RangeImage::rangeImageConversion() {
+  range_image = cv::Mat(image_height, image_width, CV_64FC1);
+  range_image_pixel_data.assign(image_height, std::vector<RangePixelData>(image_width, RangePixelData()));
+  for (int i = 0; i < (*cloud_data).size(); i++) {
+    PointT point(cloud_data->points[i].x, cloud_data->points[i].y, cloud_data->points[i].z);    
     double euc_distance = sqrt(pow(point.x,2) + pow(point.y,2) + pow(point.z,2));
     if (euc_distance > maxEuclideanDistance) {
       maxEuclideanDistance = euc_distance;
     }
     auto yaw = atan2(point.y, point.x);
     auto pitch = asin(point.z / euc_distance);
-    int pixel_x = getPixelX(yaw);
-    int pixel_y = getPixelY(pitch);
+    int pixel_x = rangePixelX(yaw);
+    int pixel_y = rangePixelY(pitch);
     // Pitch stored for angle calculation
     range_image.at<double>(pixel_y, pixel_x) = euc_distance;
     auto& pixel_data = range_image_pixel_data.at(pixel_y).at(pixel_x);
-    pixel_data.point_cloud_index = 1;
+    pixel_data.point_cloud_index = i;
     pixel_data.vertical_angle = pitch;
   }
 }
 
-int RangeImage::getPixelX(const double &yaw) {
+int RangeImage::rangePixelX(const double &yaw) {
   double x = image_width*(0.5 * (yaw / M_PI + 1.0));
   x = floor(x);
   x = std::min(image_width-1, x);
@@ -132,7 +130,7 @@ int RangeImage::getPixelX(const double &yaw) {
   return static_cast<int>(x);
 }
 
-int RangeImage::getPixelY(const double &pitch) {
+int RangeImage::rangePixelY(const double &pitch) {
   double y = image_height*(1.0 - (pitch + std::abs(fov_down)) / (fov_down + fov_up));
   y = floor(y);
   y = std::min(image_height-1, y);

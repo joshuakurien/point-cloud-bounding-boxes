@@ -10,8 +10,9 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_library(helpers
-            src/filter.cpp
-            src/range_image.cpp)
+            src/cloud_filter.cpp
+            src/range_image.cpp
+            src/ground_segmentation.cpp)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main 

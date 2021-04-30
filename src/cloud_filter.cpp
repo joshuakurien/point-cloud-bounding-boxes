@@ -3,11 +3,11 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 
-#include <filter.h>
+#include <cloud_filter.h>
 
-Filter::Filter() {};
+CloudFilter::CloudFilter() {};
 
-void Filter::distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius) {
+void CloudFilter::distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius) {
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
   pcl::ExtractIndices<PointT> extract;
   for (int i = 0; i < (*cloud).size(); i++) {
@@ -22,7 +22,7 @@ void Filter::distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius) {
   extract.filter(*cloud);  
 }
 
-void Filter::voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size) {
+void CloudFilter::voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size) {
   pcl::VoxelGrid<PointT> sor;
   sor.setInputCloud (cloud);
   sor.setLeafSize (voxel_size, voxel_size, voxel_size);
@@ -30,7 +30,7 @@ void Filter::voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size) {
 }
 
 // Apply RANSAC to remove ground points
-void Filter::groundRansac (pcl::PointCloud<PointT>::Ptr cloud, int num_iterations, float plane_thickness, float angle_threshold_deg) {
+void CloudFilter::groundRansac (pcl::PointCloud<PointT>::Ptr cloud, int num_iterations, float plane_thickness, float angle_threshold_deg) {
   std::random_device rd;
   std::default_random_engine gen(rd());
   std::uniform_int_distribution<> distrib(0, cloud->size()-1);

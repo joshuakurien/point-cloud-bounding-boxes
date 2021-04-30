@@ -6,8 +6,9 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
-#include <filter.h>
+#include <cloud_filter.h>
 #include <range_image.h>
+#include <ground_segmentation.h>
 
 using namespace std::chrono_literals;
 
@@ -36,16 +37,15 @@ int main (int argc, char** argv) {
     return (-1);
   }
 
-  // Filter filter;
+  // CloudFilter filter;
   // filter.distance(cloud);
   // filter.voxel(cloud);
   
   const double kFovUp = 2.0, kFovDown = 24.8, kImageWidth = 1024.0, kImageHeight = 64.0;
   RangeImage range_image(cloud, kFovUp, kFovDown, kImageWidth, kImageHeight);
-  range_image.displayImage(true);
-
+  GroundSegmentation ground_segmentation(range_image);
   // pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
-  // Main viewer loop
+  // // Main viewer loop
   // while (!viewer->wasStopped ())
   // {
   //   viewer->spinOnce (100);
