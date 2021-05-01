@@ -26,7 +26,7 @@ void RangeImage::angleImageConversion() {
 }
 
 void RangeImage::smoothenAngleImage() {
-  int window_size = 7;
+  int window_size = 5;
   if (window_size % 2 == 0) {
     throw std::logic_error("only odd window size allowed");
   }

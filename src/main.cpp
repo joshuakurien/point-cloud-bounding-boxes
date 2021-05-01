@@ -37,19 +37,19 @@ int main (int argc, char** argv) {
     return (-1);
   }
 
-  
-  
-  // std::cout << "before ground removal" << cloud->size();
-
-  // CloudFilter filter;
-  // filter.distance(cloud);
+  CloudFilter filter;
+  filter.distance(cloud);
   // filter.voxel(cloud);
+  
+  std::cout << "before ground removal" << cloud->size();
 
-  const double kFovUp = 2.0, kFovDown = 24.8, kImageWidth = 1024.0, kImageHeight = 64.0;
+  const double kFovUp = 2.0, kFovDown = 24.9, kImageWidth = 4500.0, kImageHeight = 64.0;
   RangeImage range_image(cloud, kFovUp, kFovDown, kImageWidth, kImageHeight);
   GroundSegmentation seg(range_image);
   seg.performSegmentation();
-  pcl::PointIndices::Ptr inliers = seg.getGroundIndices();  
+  const std::set<int>& inliers_indices_set = seg.getGroundIndices();  
+  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+  inliers->indices.assign(inliers_indices_set.begin(), inliers_indices_set.end());
   pcl::ExtractIndices<PointT> extract;
   extract.setInputCloud(cloud);
   extract.setIndices(inliers);
@@ -57,11 +57,11 @@ int main (int argc, char** argv) {
   extract.filter(*cloud);  
   
   std::cout << "after ground removal" << cloud->size();
-  // pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
-  // // Main viewer loop
-  // while (!viewer->wasStopped ())
-  // {
-  //   viewer->spinOnce (100);
-  //   std::this_thread::sleep_for(100ms);
-  // }
+  pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
+  // Main viewer loop
+  while (!viewer->wasStopped ())
+  {
+    viewer->spinOnce (100);
+    std::this_thread::sleep_for(100ms);
+  }
 }

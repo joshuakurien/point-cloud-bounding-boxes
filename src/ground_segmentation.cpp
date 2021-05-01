@@ -2,7 +2,6 @@
 
 GroundSegmentation::GroundSegmentation(RangeImage range_image_input)
     : range_image{range_image_input} {
-  ground_points = pcl::PointIndices::Ptr(new pcl::PointIndices());
   range_image.rangeImageConversion();
   range_image.angleImageConversion();
   graph_height = range_image.getAngleImageSize(true);
@@ -14,11 +13,11 @@ GroundSegmentation::GroundSegmentation(RangeImage range_image_input)
 
 void GroundSegmentation::performSegmentation() {;
   range_image.smoothenAngleImage();
-  range_image.displayImage(false);
+  // range_image.displayImage(false);
   labelLowestRow();
   labelGroundPoints();
   extractGroundIndices();
-  range_image.displayImage(false);
+  // range_image.displayImage(false);
 }
 
 void GroundSegmentation::labelLowestRow() {
@@ -109,17 +108,17 @@ std::vector<SegmentationNode> GroundSegmentation::findAvailableNeighbours(int ro
   return neighbours;
 }
 
-pcl::PointIndices::Ptr GroundSegmentation::getGroundIndices() {
-  return ground_points;
+std::set<int> GroundSegmentation::getGroundIndices() {
+  return ground_indices;
 }
 
 void GroundSegmentation::extractGroundIndices() {
   for (int i = 0; i < graph_height; i++) {
     for (int j = 0; j < graph_width; j++) {
       if (segmentation_graph.at(i).at(j).is_ground) {
-        int index = range_image.getImageIndexValue(i + 1, j);
+        int index = range_image.getImageIndexValue(i, j);
         // range_image.setAngleImageValue(i, j, 1.0);
-        ground_points->indices.push_back(i);
+        ground_indices.insert(index);      
       }
     }
   }

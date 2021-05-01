@@ -2,6 +2,8 @@
 #define PC_OBJ_DETECT__GROUND_SEGMENTATION__H_
 
 #include <queue>
+#include <algorithm>
+#include <set>
 #include <range_image.h>
 #include <cloud_filter.h>
 
@@ -16,7 +18,7 @@ class GroundSegmentation {
 public:
   GroundSegmentation(RangeImage range_image_input); 
   void performSegmentation();
-  pcl::PointIndices::Ptr getGroundIndices();
+  std::set<int> getGroundIndices();
 private:
   void labelLowestRow();
   void labelGroundPoints();
@@ -26,7 +28,7 @@ private:
   int graph_height, graph_width;
   std::vector<int> initial_ground_points;
   RangeImage range_image;
-  pcl::PointIndices::Ptr ground_points;
+  std::set<int> ground_indices;
   // ground truth graph for ground and non-ground points
   std::vector<std::vector<SegmentationNode>> segmentation_graph;
 };
