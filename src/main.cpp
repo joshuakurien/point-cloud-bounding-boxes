@@ -39,7 +39,6 @@ int main (int argc, char** argv) {
 
   CloudFilter filter;
   filter.distance(cloud);
-  // filter.voxel(cloud);
   
   std::cout << "before ground removal" << cloud->size();
 

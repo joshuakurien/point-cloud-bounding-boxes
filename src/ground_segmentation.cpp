@@ -21,7 +21,7 @@ void GroundSegmentation::performSegmentation() {;
 }
 
 void GroundSegmentation::labelLowestRow() {
-  double kAngleThreshold = 45.0 / 180.0 * M_PI;
+  double kAngleThreshold = 25.0 / 180.0 * M_PI;
   for (int j = 0; j < graph_width; j++) {
     if (range_image.getAngleImageValue(graph_height - 1, j) < kAngleThreshold) {
       initial_ground_points.push_back(j);
@@ -46,7 +46,7 @@ void GroundSegmentation::labelGroundPointsBFS(int row, int col) {
   std::queue<SegmentationNode> bfs_queue;
   bfs_queue.push(bottom_row_node);
 
-  double kAngleThreshold = 5.0 / 180.0 * M_PI;
+  double kAngleThreshold = 12.0 / 180.0 * M_PI;
   while (!bfs_queue.empty()) {
     SegmentationNode cur_node = bfs_queue.front();
     // node is considered 'visited' and a ground point after its angle value has already been compared
@@ -116,9 +116,10 @@ void GroundSegmentation::extractGroundIndices() {
   for (int i = 0; i < graph_height; i++) {
     for (int j = 0; j < graph_width; j++) {
       if (segmentation_graph.at(i).at(j).is_ground) {
-        int index = range_image.getImageIndexValue(i, j);
-        // range_image.setAngleImageValue(i, j, 1.0);
-        ground_indices.insert(index);      
+        int index = range_image.getImageIndexValue(i+1, j);
+        if (index != -1) {
+          ground_indices.insert(index);      
+        }
       }
     }
   }

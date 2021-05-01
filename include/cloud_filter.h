@@ -14,7 +14,7 @@ public:
   CloudFilter();
   // Default values for the CloudFilters included
   void distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius = 20);
-  void voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size = 0.04f);
+  void voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size = 0.08f);
   void groundRansac (pcl::PointCloud<PointT>::Ptr cloud, int num_iterations = 2000, float plane_thickness = 0.5, float angle_threshold_deg = 2);
 };
 

@@ -152,7 +152,7 @@ void RangeImage::rangeImageConversion() {
 
 int RangeImage::rangePixelX(const double &yaw) {
   double x = image_width*(0.5 * (yaw / M_PI + 1.0));
-  x = floor(x);
+  x = round(x);
   x = std::min(image_width-1, x);
   x = std::max(0.0, x);
   return static_cast<int>(x);
@@ -160,7 +160,7 @@ int RangeImage::rangePixelX(const double &yaw) {
 
 int RangeImage::rangePixelY(const double &pitch) {
   double y = image_height*(1.0 - (pitch + std::abs(fov_down)) / (fov_down + fov_up));
-  y = floor(y);
+  y = round(y);
   y = std::min(image_height-1, y);
   y = std::max(0.0, y);
   return static_cast<int>(y);
