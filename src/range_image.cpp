@@ -8,8 +8,8 @@ RangeImage::RangeImage (pcl::PointCloud<PointT>::Ptr cloud_input,
 
 void RangeImage::angleImageConversion() {
   angle_image = cv::Mat(image_height - 1, image_width, CV_64FC1);
-  for (int i = 0; i < image_height - 1; ++i) {
-    for (int j = 0; j < image_width; ++j) {
+  for (int i = 0; i < image_height - 1; i++) {
+    for (int j = 0; j < image_width; j++) {
       double range_upper = range_image.at<double>(i, j);
       double range_lower = range_image.at<double>(i+1, j);
       double vertical_angle_upper = range_image_pixel_data.at(i).at(j).vertical_angle;
@@ -26,7 +26,7 @@ void RangeImage::angleImageConversion() {
 }
 
 void RangeImage::smoothenAngleImage() {
-  int window_size = 11;
+  int window_size = 7;
   if (window_size % 2 == 0) {
     throw std::logic_error("only odd window size allowed");
   }
@@ -96,9 +96,37 @@ void RangeImage::displayImage(bool display_range_image) {
   if (display_range_image && !range_image.empty()) {
     cv::imshow("Range Image", range_image/maxEuclideanDistance);
   } else if (!angle_image.empty()) {
-    cv::imshow("Angle Image", angle_image/maxAlpha);
+    cv::imshow("Angle Image", angle_image);
   }
   cv::waitKey(0);
+}
+
+int RangeImage::getRangeImageSize(bool is_num_rows) {
+  return is_num_rows ? range_image.rows : range_image.cols;
+}  
+
+int RangeImage::getAngleImageSize(bool is_num_rows) {
+  return is_num_rows ? angle_image.rows : angle_image.cols;
+} 
+
+double RangeImage::getRangeImageValue(int row, int col) {
+  return range_image.at<double>(row, col);
+} 
+
+double RangeImage::getAngleImageValue(int row, int col) {
+  return angle_image.at<double>(row, col);
+} 
+
+void RangeImage::setAngleImageValue(int row, int col, double val) {
+  angle_image.at<double>(row, col) = val;
+} 
+
+int RangeImage::getImageIndexValue(int row, int col) {
+  return range_image_pixel_data.at(row).at(col).point_cloud_index;
+}
+
+pcl::PointCloud<PointT>::Ptr RangeImage::getCloudData() {
+  return cloud_data;
 }
 
 void RangeImage::rangeImageConversion() {

@@ -1,8 +1,3 @@
-#include <unordered_map>
-#include <random>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/voxel_grid.h>
-
 #include <cloud_filter.h>
 
 CloudFilter::CloudFilter() {};

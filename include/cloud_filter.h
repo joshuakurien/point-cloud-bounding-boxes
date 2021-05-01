@@ -1,7 +1,11 @@
 #ifndef PC_OBJ_DETECT__CLOUD_FILTER__H_
 #define PC_OBJ_DETECT__CLOUD_FILTER__H_
 
+#include <unordered_map>
+#include <random>
 #include <pcl/common/common_headers.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
 
 using PointT = pcl::PointXYZI;
 
