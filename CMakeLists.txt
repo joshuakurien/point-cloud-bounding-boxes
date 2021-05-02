@@ -11,7 +11,6 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_library(helpers
             src/cloud_filter.cpp
-            src/range_image.cpp
             src/ground_segmentation.cpp
             src/cloud_visualizer.cpp)
 

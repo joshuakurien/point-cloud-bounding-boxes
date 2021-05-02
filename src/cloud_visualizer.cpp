@@ -1,7 +1,6 @@
 #include <cloud_visualizer.h>
-#include <memory>
-#include <pcl/common/common_headers.h>
 
+// Constructor creates viewer to visualize points
 CloudVisualizer::CloudVisualizer() {
   viewer = std::make_shared<pcl::visualization::PCLVisualizer>("3D Viewer");
   viewer->setBackgroundColor (0, 0, 0);
@@ -9,6 +8,7 @@ CloudVisualizer::CloudVisualizer() {
   viewer->initCameraParameters ();
 }
 
+// Adds clouds to be visualized by the viewer
 void CloudVisualizer::addCloud(pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud, std::string cloud_name) {
   pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> point_cloud_color_handler(cloud, "intensity");
   viewer->addPointCloud<pcl::PointXYZI> (cloud, point_cloud_color_handler, cloud_name);
