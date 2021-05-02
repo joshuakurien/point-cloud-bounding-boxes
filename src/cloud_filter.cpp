@@ -31,17 +31,6 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::voxel(pcl::PointCloud<PointT>::Ptr clo
 
 pcl::PointCloud<PointT>::Ptr CloudFilter::ground(pcl::PointCloud<PointT>::Ptr cloud, std::shared_ptr<RangeImage> range_image) {
   pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
-  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-  pcl::ExtractIndices<PointT> extract;
-  GroundSegmentation seg(range_image);
-
-  seg.performSegmentation();
-  const std::set<int>& inliers_indices_set = seg.getGroundIndices();  
-  inliers->indices.assign(inliers_indices_set.begin(), inliers_indices_set.end());
-  extract.setInputCloud(cloud);
-  extract.setIndices(inliers);
-  extract.setNegative(__GCC_ATOMIC_TEST_AND_SET_TRUEVAL);
-  extract.filter(*cloud_filtered);  
   return cloud_filtered;
 }
 // Apply RANSAC to remove ground points

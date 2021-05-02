@@ -2,7 +2,7 @@
 #include <thread>
 #include <math.h>
 #include <vector>
-
+#include <map>
 #include <pcl/io/pcd_io.h>
 
 #include <cloud_filter.h>
@@ -18,7 +18,7 @@ int main (int argc, char** argv) {
   pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_ground_removed (new pcl::PointCloud<pcl::PointXYZI>);
   
   // Load pcd file into point cloud shared pointer
-  if (pcl::io::loadPCDFile<pcl::PointXYZI> ("../data/test_cloud.pcd", *cloud) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZI> ("../data/test_data.pcd", *cloud) == -1)
   {
     PCL_ERROR ("Couldn't read the pcd file \n");
     return (-1);
@@ -26,6 +26,18 @@ int main (int argc, char** argv) {
 
   auto filter = std::make_shared<CloudFilter>();
   cloud_filtered = filter->distance(cloud);
+
+  std::map<double, int> map;
+  for (auto pt : *cloud) {
+    if (map.find(pt.z) == map.end())
+      map[pt.z]++;
+  }
+  int count = 0;
+  for (auto kv : map) {
+    std::cout << "first: " << kv.first << "second: " << kv.second << std::endl;
+    break;
+  }
+  std::cout << count << std::endl;
   cloud_downsampled = filter->voxel(cloud_filtered);
 
   const double kFovUp = 2.0, kFovDown = 24.9, kImageWidth = 4500.0, kImageHeight = 64.0;
@@ -34,7 +46,7 @@ int main (int argc, char** argv) {
   cloud_ground_removed = filter->ground(cloud_downsampled, range_image);
 
   CloudVisualizer vis;
-  vis.addCloud(cloud_ground_removed, "sample_cloud");
+  vis.addCloud(cloud, "sample_cloud");
   // Main viewer loop
   while (!vis.viewer->wasStopped ())
   {
