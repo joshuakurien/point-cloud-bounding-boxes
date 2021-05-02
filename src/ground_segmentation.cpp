@@ -1,18 +1,16 @@
 #include <ground_segmentation.h>
 
-GroundSegmentation::GroundSegmentation(RangeImage range_image_input)
+GroundSegmentation::GroundSegmentation(std::shared_ptr<RangeImage> range_image_input)
     : range_image{range_image_input} {
-  range_image.rangeImageConversion();
-  range_image.angleImageConversion();
-  graph_height = range_image.getAngleImageSize(true);
-  graph_width = range_image.getAngleImageSize(false);
+  graph_height = range_image->getAngleImageSize(true);
+  graph_width = range_image->getAngleImageSize(false);
   // ground truth for which points are ground points
   segmentation_graph.assign(graph_height, std::vector<SegmentationNode>(
                                               graph_width, SegmentationNode()));
 }
 
 void GroundSegmentation::performSegmentation() {;
-  range_image.smoothenAngleImage();
+  range_image->smoothenAngleImage();
   // range_image.displayImage(false);
   labelLowestRow();
   labelGroundPoints();
@@ -21,9 +19,9 @@ void GroundSegmentation::performSegmentation() {;
 }
 
 void GroundSegmentation::labelLowestRow() {
-  double kAngleThreshold = 25.0 / 180.0 * M_PI;
+  double kAngleThreshold = 45.0 / 180.0 * M_PI;
   for (int j = 0; j < graph_width; j++) {
-    if (range_image.getAngleImageValue(graph_height - 1, j) < kAngleThreshold) {
+    if (range_image->getAngleImageValue(graph_height - 1, j) < kAngleThreshold) {
       initial_ground_points.push_back(j);
     }
   }
@@ -46,7 +44,7 @@ void GroundSegmentation::labelGroundPointsBFS(int row, int col) {
   std::queue<SegmentationNode> bfs_queue;
   bfs_queue.push(bottom_row_node);
 
-  double kAngleThreshold = 12.0 / 180.0 * M_PI;
+  double kAngleThreshold = 5.0 / 180.0 * M_PI;
   while (!bfs_queue.empty()) {
     SegmentationNode cur_node = bfs_queue.front();
     // node is considered 'visited' and a ground point after its angle value has already been compared
@@ -54,8 +52,8 @@ void GroundSegmentation::labelGroundPointsBFS(int row, int col) {
 
     std::vector<SegmentationNode> neighbours = findAvailableNeighbours(cur_node.row, cur_node.col);
     for (auto neighbour : neighbours) {
-      double neighbour_angle = range_image.getAngleImageValue(neighbour.row, neighbour.col);
-      double current_node_angle = range_image.getAngleImageValue(cur_node.row, cur_node.col);
+      double neighbour_angle = range_image->getAngleImageValue(neighbour.row, neighbour.col);
+      double current_node_angle = range_image->getAngleImageValue(cur_node.row, cur_node.col);
       if (abs(neighbour_angle - current_node_angle) < kAngleThreshold) {
         bfs_queue.push(neighbour);
       }
@@ -113,14 +111,23 @@ std::set<int> GroundSegmentation::getGroundIndices() {
 }
 
 void GroundSegmentation::extractGroundIndices() {
+  long long count, unvisited;
   for (int i = 0; i < graph_height; i++) {
     for (int j = 0; j < graph_width; j++) {
+      count++;
+      if (!segmentation_graph.at(i).at(j).is_visited) {
+        unvisited++;
+      }
       if (segmentation_graph.at(i).at(j).is_ground) {
-        int index = range_image.getImageIndexValue(i+1, j);
+        int index = range_image->getImageIndexValue(i+1, j);
         if (index != -1) {
           ground_indices.insert(index);      
         }
       }
     }
   }
+  std::cout << "total: " << count << std::endl;
+  std::cout << "unvisited: " << unvisited << std::endl;
+  std::cout << "unreached" << count - unvisited << std::endl;
+  std::cout << "percentage unreached" << (count - unvisited)/count*100 << std::endl;
 }

@@ -4,6 +4,8 @@ RangeImage::RangeImage (pcl::PointCloud<PointT>::Ptr cloud_input,
   double fov_up_input, double fov_down_input, double image_width_input, double image_height_input) :
   cloud_data{cloud_input}, fov_up{std::abs(fov_up_input/180*M_PI)}, fov_down{std::abs(fov_down_input/180*M_PI)}, 
   image_width{image_width_input}, image_height{image_height_input} {
+  rangeImageConversion();
+  angleImageConversion();
 }
 
 void RangeImage::angleImageConversion() {
@@ -26,7 +28,7 @@ void RangeImage::angleImageConversion() {
 }
 
 void RangeImage::smoothenAngleImage() {
-  int window_size = 5;
+  int window_size = 11;
   if (window_size % 2 == 0) {
     throw std::logic_error("only odd window size allowed");
   }
@@ -46,6 +48,7 @@ void RangeImage::smoothenAngleImage() {
       kernel.at<float>(0, 3) = 12.0f;
       kernel.at<float>(0, 4) = -3.0f;
       kernel /= 35.0f;
+      break;
     case 7:
       kernel = cv::Mat::zeros(window_size, 1, CV_32F);
       kernel.at<float>(0, 0) = -2.0f;
@@ -56,6 +59,7 @@ void RangeImage::smoothenAngleImage() {
       kernel.at<float>(0, 5) = 3.0f;
       kernel.at<float>(0, 6) = -2.0f;
       kernel /= 21.0f;
+      break;
     case 9:
       kernel = cv::Mat::zeros(window_size, 1, CV_32F);
       kernel.at<float>(0, 0) = -21.0f;
@@ -68,6 +72,7 @@ void RangeImage::smoothenAngleImage() {
       kernel.at<float>(0, 7) = 14.0f;
       kernel.at<float>(0, 8) = -21.0f;
       kernel /= 231.0f;
+      break;
     case 11:
       kernel = cv::Mat::zeros(window_size, 1, CV_32F);
       kernel.at<float>(0, 0) = -36.0f;
@@ -82,8 +87,8 @@ void RangeImage::smoothenAngleImage() {
       kernel.at<float>(0, 9) = 9.0f;
       kernel.at<float>(0, 10) = -36.0f;
       kernel /= 429.0f;
+      break;
   }
-
   if (!angle_image.empty()) {
     const cv::Point ANCHOR_CENTER = cv::Point(-1, -1);
     const int SAME_OUTPUT_TYPE = -1;

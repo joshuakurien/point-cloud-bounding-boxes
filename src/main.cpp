@@ -4,32 +4,19 @@
 #include <vector>
 
 #include <pcl/io/pcd_io.h>
-#include <pcl/visualization/pcl_visualizer.h>
 
 #include <cloud_filter.h>
 #include <range_image.h>
-#include <ground_segmentation.h>
+#include <cloud_visualizer.h>
 
 using namespace std::chrono_literals;
 
-// Simple viewer to visualize points clouds with intensity field
-pcl::visualization::PCLVisualizer::Ptr visualizeClouds (pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud)
-{
-  pcl::visualization::PCLVisualizer::Ptr viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-  // pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> point_cloud_color_handler(cloud, "intensity");
-  viewer->setBackgroundColor (0, 0, 0);
-  // viewer->addPointCloud<pcl::PointXYZI> (cloud, point_cloud_color_handler, "sample cloud");
-  viewer->addPointCloud<pcl::PointXYZI> (cloud, "sample cloud");
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
-  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 1.0, 1.0, "sample cloud");
-  viewer->addCoordinateSystem (1.0);
-  viewer->initCameraParameters ();
-  return (viewer);
-}
-
 int main (int argc, char** argv) {
   pcl::PointCloud<pcl::PointXYZI>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZI>);
-
+  pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_downsampled (new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_ground_removed (new pcl::PointCloud<pcl::PointXYZI>);
+  
   // Load pcd file into point cloud shared pointer
   if (pcl::io::loadPCDFile<pcl::PointXYZI> ("../data/test_cloud.pcd", *cloud) == -1)
   {
@@ -37,30 +24,21 @@ int main (int argc, char** argv) {
     return (-1);
   }
 
-  CloudFilter filter;
-  filter.distance(cloud);
-  
-  std::cout << "before ground removal" << cloud->size();
+  auto filter = std::make_shared<CloudFilter>();
+  cloud_filtered = filter->distance(cloud);
+  cloud_downsampled = filter->voxel(cloud_filtered);
 
   const double kFovUp = 2.0, kFovDown = 24.9, kImageWidth = 4500.0, kImageHeight = 64.0;
-  RangeImage range_image(cloud, kFovUp, kFovDown, kImageWidth, kImageHeight);
-  GroundSegmentation seg(range_image);
-  seg.performSegmentation();
-  const std::set<int>& inliers_indices_set = seg.getGroundIndices();  
-  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-  inliers->indices.assign(inliers_indices_set.begin(), inliers_indices_set.end());
-  pcl::ExtractIndices<PointT> extract;
-  extract.setInputCloud(cloud);
-  extract.setIndices(inliers);
-  extract.setNegative(true);
-  extract.filter(*cloud);  
+  auto range_image = std::make_shared<RangeImage>(cloud_downsampled, kFovUp, kFovDown, kImageWidth, kImageHeight);
   
-  std::cout << "after ground removal" << cloud->size();
-  pcl::visualization::PCLVisualizer::Ptr viewer = visualizeClouds(cloud);
+  cloud_ground_removed = filter->ground(cloud_downsampled, range_image);
+
+  CloudVisualizer vis;
+  vis.addCloud(cloud_ground_removed, "sample_cloud");
   // Main viewer loop
-  while (!viewer->wasStopped ())
+  while (!vis.viewer->wasStopped ())
   {
-    viewer->spinOnce (100);
-    std::this_thread::sleep_for(100ms);
+    vis.viewer->spinOnce (100);
+    // std::this_thread::sleep_for(100ms);
   }
 }
