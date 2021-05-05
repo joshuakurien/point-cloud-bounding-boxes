@@ -41,23 +41,8 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::ground(pcl::PointCloud<PointT>::Ptr cl
   pcl::ExtractIndices<PointT> extract;
   GroundSegmentation seg(cloud);
   auto ground_points = seg.getGroundPoints();
-
   for (auto point : *ground_points) {
     cloud_filtered->push_back(point);
   }
-
-  // TODO fix this issue
-  // for (int i = 0; i < (*cloud).size(); i++) {
-  //   std::map<PointT, int>::iterator it = ground_points->find(cloud->points[i]);
-  //   if (it != ground_points->end()) {
-  //     inliers->indices.push_back(i);
-  //     ground_points->erase(it);
-  //   }
-  // }
-
-  // extract.setInputCloud(cloud);
-  // extract.setIndices(inliers);
-  // extract.setNegative(true);
-  // extract.filter(*cloud_filtered);
   return cloud_filtered;
 }
