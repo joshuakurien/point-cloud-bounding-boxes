@@ -6,18 +6,19 @@
 #include <pcl/common/common_headers.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
-#include <range_image.h>
 
 using PointT = pcl::PointXYZI;
 
+// Class used for reducing the number points from 
+// the point cloud through various filters
 class CloudFilter {
 public:
   CloudFilter();
-  // Default values for the CloudFilters included
-  pcl::PointCloud<PointT>::Ptr distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius = 10);
-  pcl::PointCloud<PointT>::Ptr voxel (pcl::PointCloud<PointT>::Ptr cloud, float voxel_size = 0.008f);
-  pcl::PointCloud<PointT>::Ptr ground (pcl::PointCloud<PointT>::Ptr cloud, std::shared_ptr<RangeImage> range_image);
-  void groundRansac (pcl::PointCloud<PointT>::Ptr cloud, int num_iterations = 2000, float plane_thickness = 0.5, float angle_threshold_deg = 2);
+  pcl::PointCloud<PointT>::Ptr distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius);
+  pcl::PointCloud<PointT>::Ptr voxel (pcl::PointCloud<PointT>::Ptr cloud, float leaf_size);
+  pcl::PointCloud<PointT>::Ptr ground (pcl::PointCloud<PointT>::Ptr cloud);
+private:
+  pcl::PointCloud<PointT>::Ptr removePoints(pcl::PointCloud<PointT>::Ptr cloud, pcl::PointIndices::Ptr inliers);
 };
 
 #endif // PC_OBJ_DETECT__CLOUD_FILTER__H_

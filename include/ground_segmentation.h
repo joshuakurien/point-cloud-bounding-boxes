@@ -5,32 +5,43 @@
 #include <algorithm>
 #include <set>
 #include <memory>
-#include <range_image.h>
+#include <map>
+#include <vector>
+#include <pcl/common/common_headers.h>
 
-class SegmentationNode {
-public:
-  bool is_visited = false;
-  bool is_ground = false;
-  int row = 0;
-  int col = 0;
+enum ground_label {
+  initial_ground_point,
+  ground_point, 
+  threshold_point,
+  non_ground_point
 };
+
+using PointT = pcl::PointXYZI;
+using Bin = std::vector<PointT>;
+using BinContainer = std::vector<Bin>;
+
+double euclideanDistance (PointT pt);
+double euclideanDistanceDifference (PointT pt1, PointT pt2);
+double flatDistance (PointT pt);
+double azimuth(PointT pt);
+
+// Implementation of ground segmentation algorithm
 class GroundSegmentation {
 public:
-  GroundSegmentation(std::shared_ptr<RangeImage> range_image_input); 
-  void performSegmentation();
-  std::set<int> getGroundIndices();
+  GroundSegmentation(pcl::PointCloud<PointT>::Ptr cloud);
+  std::shared_ptr<std::vector<PointT>> getGroundPoints();
 private:
-  void labelLowestRow();
-  void labelGroundPoints();
-  void labelGroundPointsBFS(int row, int col);
-  void extractGroundIndices();
-  std::vector<SegmentationNode> findAvailableNeighbours(int row, int col);
-  int graph_height, graph_width;
-  std::vector<int> initial_ground_points;
-  std::shared_ptr<RangeImage> range_image;
-  std::set<int> ground_indices;
-  // ground truth graph for ground and non-ground points
-  std::vector<std::vector<SegmentationNode>> segmentation_graph;
+  void createPointBins(pcl::PointCloud<PointT>::Ptr cloud);
+  void determineGroundPoints();
+  void segmentBinGroundPoints(const Bin& bin);
+  bool compareConsecutivePoints(const PointT & prev, const PointT & cur, bool is_labelling_ground);
+  double sensor_height = 0;
+  std::shared_ptr<BinContainer> point_bins;
+  std::shared_ptr<std::vector<PointT>> ground_points;
+  const double kAzimuthResolutionDeg = 0.08;
+  const double kMaxAngleDeg = 45.0;
+  const double kMaxAngleRad = kMaxAngleDeg*M_PI/180;
+  const double kMinHeight = 0.1; 
 };
 
 #endif // PC_OBJ_DETECT__GROUND_SEGMENTATION__H_
