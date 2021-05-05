@@ -25,14 +25,14 @@ int main (int argc, char** argv) {
   }
 
   auto filter = std::make_shared<CloudFilter>();
-  cloud_filtered = filter->distance(cloud, 10);
-  
-  GroundSegmentation seg(cloud_filtered);
-  
+  cloud_filtered = filter->distance(cloud, 20);
   // cloud_downsampled = filter->voxel(cloud_filtered);
 
+  cloud_ground_removed = filter->ground(cloud_filtered);
+
   CloudVisualizer vis;
-  vis.addCloud(cloud_filtered, "sample_cloud");
+  vis.addCloud(cloud_filtered, "filtered_cloud", false);
+  vis.addCloud(cloud_ground_removed, "ground points", true);
   // Main viewer loop
   while (!vis.viewer->wasStopped ())
   {
