@@ -20,5 +20,19 @@ void CloudVisualizer::addCloud(pcl::PointCloud<PointT>::ConstPtr cloud, std::str
     double g = static_cast<double>(rand()) / RAND_MAX;
     double b = static_cast<double>(rand()) / RAND_MAX;
     viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, r, g, b, cloud_name);
+    addBoundingBox(cloud, cloud_name + "_box", r, g, b);
   }
 }
+
+void CloudVisualizer::addBoundingBox(pcl::PointCloud<PointT>::ConstPtr cloud, std::string box_name, 
+double r_colour, double g_colour, double b_colour) {
+  pcl::MomentOfInertiaEstimation <PointT> feature_extractor;
+  feature_extractor.setInputCloud (cloud);
+  feature_extractor.compute ();
+  PointT min_point, max_point;
+  feature_extractor.getAABB (min_point, max_point);
+  viewer->addCube (min_point.x, max_point.x, min_point.y, max_point.y, min_point.z, max_point.z, 1.0, 1.0, 0.0, box_name);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, box_name);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, box_name);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, r_colour, g_colour, b_colour, box_name);
+ }

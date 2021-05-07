@@ -29,9 +29,6 @@ void GroundSegmentation::createPointBins(pcl::PointCloud<PointT>::Ptr cloud) {
   // which is used as the initial ground point for further calculations
   while (cur_point != cloud->end()) {
     if (azimuth(*cur_point) >= bin_beginning && azimuth(*cur_point) < bin_ending) {
-      if (cur_point->z < sensor_height) {
-        sensor_height = cur_point->z;
-      }
       cur_bin.push_back(*cur_point);
       cur_point++;
     } else {

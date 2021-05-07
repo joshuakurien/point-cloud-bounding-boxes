@@ -35,7 +35,7 @@ private:
   void determineGroundPoints();
   void segmentBinGroundPoints(const Bin& bin);
   bool compareConsecutivePoints(const PointT & prev, const PointT & cur, bool is_labelling_ground);
-  double sensor_height = 0;
+  double sensor_height = -2.1;
   std::shared_ptr<BinContainer> point_bins;
   std::shared_ptr<std::vector<PointT>> ground_points;
   const double kAzimuthResolutionDeg = 0.08;
