@@ -35,4 +35,4 @@ double r_colour, double g_colour, double b_colour) {
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, box_name);
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, box_name);
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, r_colour, g_colour, b_colour, box_name);
-}
+ }

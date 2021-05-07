@@ -35,10 +35,10 @@ int main (int argc, char** argv) {
   
   CloudVisualizer vis;
   vis.addCloud(cloud_filtered, "filtered_cloud", false);
-
   for (int i = 0; i < clusters.size(); i++) {
     vis.addCloud(clusters[i], "cluster " + std::to_string(i), true);
   }
+
   // Main viewer loop
   while (!vis.viewer->wasStopped ())
   {

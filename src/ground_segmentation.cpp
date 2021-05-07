@@ -51,6 +51,7 @@ void GroundSegmentation::createPointBins(pcl::PointCloud<PointT>::Ptr cloud) {
       return flatDistance(p1) < flatDistance(p2); 
     });
   }
+  std::cout << "lowest point: " << sensor_height << std::endl;
 }
 
 void GroundSegmentation::determineGroundPoints() {
