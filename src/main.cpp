@@ -32,19 +32,16 @@ int main (int argc, char** argv) {
 
   EuclideanClustering clustering(cloud_ground_removed);
   std::vector<pcl::PointCloud<PointT>::Ptr> clusters = clustering.getClusters();
-  std::cout << clusters.size();
   
   CloudVisualizer vis;
-  vis.addCloud(cloud_ground_removed, "ground points removed", false);
+  vis.addCloud(cloud_filtered, "filtered_cloud", false);
 
   for (int i = 0; i < clusters.size(); i++) {
     vis.addCloud(clusters[i], "cluster " + std::to_string(i), true);
   }
-  // vis.addCloud(cloud_filtered, "filtered_cloud", false);
   // Main viewer loop
   while (!vis.viewer->wasStopped ())
   {
     vis.viewer->spinOnce (100);
-    // std::this_thread::sleep_for(100ms);
   }
 }
