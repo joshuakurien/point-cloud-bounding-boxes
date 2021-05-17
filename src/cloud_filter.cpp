@@ -41,8 +41,8 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::ground(pcl::PointCloud<PointT>::Ptr cl
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
   pcl::ExtractIndices<PointT> extract;
   GroundSegmentation seg(cloud);
-  auto ground_points = seg.getGroundPoints();
-  for (auto point : *ground_points) {
+  auto ground_points = seg.getNonGroundPoints();
+  for (auto point : ground_points) {
     cloud_filtered->push_back(point);
   }
   return cloud_filtered;

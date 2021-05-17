@@ -2,10 +2,8 @@
 
 // Constructor dynamically allocates memory for bins and ground points
 GroundSegmentation::GroundSegmentation(pcl::PointCloud<PointT>::Ptr cloud) {
-  point_bins = std::make_shared<BinContainer>();
-  ground_points = std::make_shared<std::vector<PointT>>();
   createPointBins(cloud);
-  determineGroundPoints();
+  segmentGround();
 }
 
 // Organize points into bins along the same 'line' for main filtering algo
@@ -34,18 +32,18 @@ void GroundSegmentation::createPointBins(pcl::PointCloud<PointT>::Ptr cloud) {
     } else {
       bin_beginning += kAzimuthResolutionRad;
       bin_ending += kAzimuthResolutionRad;
-      point_bins->push_back(cur_bin);
+      point_bins.push_back(cur_bin);
       Bin next_bin;
       cur_bin = next_bin;
     }
   }
   // Following line needed to push the last_bin in
-  point_bins->push_back(cur_bin);
+  point_bins.push_back(cur_bin);
 
   // Sorts each bin by flat distance (x and y components not considering z
   // to be able to compare points 
   // along the same line for core ground filtering algo 
-  for (auto& bin : *point_bins) {
+  for (auto& bin : point_bins) {
     std::sort(bin.begin(), bin.end(),
     [](const PointT& p1, const PointT& p2) {
       return flatDistance(p1) < flatDistance(p2); 
@@ -56,9 +54,9 @@ void GroundSegmentation::createPointBins(pcl::PointCloud<PointT>::Ptr cloud) {
 // Returns a vector with point clouds representing the separate bins/lines used for filterings
 std::vector<pcl::PointCloud<PointT>::Ptr> GroundSegmentation::getPointBins() {
   std::vector<pcl::PointCloud<PointT>::Ptr> bin_clouds; 
-  bin_clouds.resize(point_bins->size());
-  for (int i = 0; i < point_bins->size(); i++) {
-    auto& bin = (*point_bins)[i]; 
+  bin_clouds.resize(point_bins.size());
+  for (int i = 0; i < point_bins.size(); i++) {
+    auto& bin = point_bins[i]; 
     pcl::PointCloud<PointT>::Ptr cur_bin_cloud (new pcl::PointCloud<PointT>);
     cur_bin_cloud->insert(cur_bin_cloud->end(), bin.begin(), bin.end());
     bin_clouds[i] = cur_bin_cloud;
@@ -66,54 +64,65 @@ std::vector<pcl::PointCloud<PointT>::Ptr> GroundSegmentation::getPointBins() {
   return bin_clouds;
 }
 
-void GroundSegmentation::determineGroundPoints() {
-  for (auto& bin : *point_bins) {
-    std::cout << bin[0].z << std::endl;
-    segmentBinGroundPoints(bin);
+void GroundSegmentation::segmentGround() {
+  for (auto& bin : point_bins) {
+    if (bin.size() == 1) {
+      bool is_labelling_ground = true;
+      PointT prev_point(0, 0, sensor_height); 
+      PointT cur_point = bin[0];
+      bool compare = compareConsecutivePoints(prev_point, cur_point, is_labelling_ground);
+      if (compare) {
+        ground_points.push_back(cur_point);
+      } else {
+        non_ground_points.push_back(cur_point);
+      }
+    } else {
+      std::vector<ground_label> labels = findKeyPoints(bin);
+      separateBinPoints(labels, bin);
+    }
   }
 }
 
-void GroundSegmentation::segmentBinGroundPoints(const Bin& bin) {
-  // Vector used to keep track of ground or non-ground point labels
-  // 1 is ground, 0 is non-ground
-  std::vector<ground_label> labels;
-  labels.resize(bin.size());
+std::vector<ground_label> GroundSegmentation::findKeyPoints(const Bin& bin) {
   // boolean used to keep track of what we are labelling
   bool is_labelling_ground = true;
   // this initial previous point is the ground point
-  PointT prev_point(0, 0, sensor_height);  
-  
-  if (bin.size() == 1) {
-    PointT cur_point = bin[0];
+  PointT prev_point(0, 0, sensor_height); 
+  // Vector used to keep track of ground or non-ground point labels
+  std::vector<ground_label> labels;
+  labels.resize(bin.size());
+  // initial pass for threshold points/new ground points identification
+  for (int i = 0; i < bin.size(); i++) {    
+    PointT cur_point = bin[i];  
     bool compare = compareConsecutivePoints(prev_point, cur_point, is_labelling_ground);
-    if (compare) {
-      ground_points->push_back(cur_point);
-    }
-  } else {
-    // initial pass for threshold points/new ground points identification
-    for (int i = 0; i < bin.size(); i++) {    
-      PointT cur_point = bin[i];  
-      bool compare = compareConsecutivePoints(prev_point, cur_point, is_labelling_ground);
 
-      if (is_labelling_ground && compare) {
+    if (is_labelling_ground) {
+      if (compare) {
         labels[i] = ground_point;
-      } else if (is_labelling_ground && !compare) {
-        // note threshold point is considered to be the first point that is considered to be a ground point
-        labels[i] = threshold_point;
+      } else {
+        labels[i] = non_ground_point;
         is_labelling_ground = false;
-      } else if (!is_labelling_ground && compare) {
+      }
+    } else {
+      if (compare) {
         labels[i] = non_ground_point;
       } else {
-        labels[i] = initial_ground_point;
+        labels[i] = ground_point;
         is_labelling_ground = true;
       }
-      prev_point = cur_point;
-    }
+    } 
+    prev_point = cur_point;
+  }
 
-    for (int i = 0; i < labels.size(); i++) {
-      if (labels[i] == initial_ground_point || labels[i] == ground_point) {
-        ground_points->push_back(bin[i]);
-      }
+  return labels;
+}
+
+void GroundSegmentation::separateBinPoints(const std::vector<ground_label>& labels, const Bin& bin) {
+  for (int i = 0; i < labels.size(); i++) {
+    if (labels[i] == ground_point) {
+      ground_points.push_back(bin[i]);
+    } else {
+      non_ground_points.push_back(bin[i]);
     }
   }
 }
@@ -124,15 +133,13 @@ bool GroundSegmentation::compareConsecutivePoints(const PointT & prev, const Poi
     double height_diff = abs(prev.z - cur.z);
     double distance_diff = euclideanDistanceDifference(prev, cur);
     double gradient = abs(asin(height_diff/distance_diff));
-    // Gradient value based on case 1 described
-    bool grad_check = gradient <= kMaxAngleRad;
+    bool grad_check = gradient < kMaxAngleRad;
+    return grad_check;
     // // Height check based on case 2 described
-    bool height_check = height_diff <= kMinHeight;
+    // bool height_check = height_diff <= kMinHeight;
     // // Distance check based on case 3 described
     // bool dist_check = euclideanDistance(prev_point) < euclideanDistance(cur_point);
     // return grad_check && height_check && dist_check;
-    return grad_check && height_check;
-
   } else {
     double height_diff = abs(prev.z - cur.z);
     double distance_diff = euclideanDistanceDifference(prev, cur);
@@ -144,8 +151,12 @@ bool GroundSegmentation::compareConsecutivePoints(const PointT & prev, const Poi
 }
 
 
-std::shared_ptr<std::vector<PointT>> GroundSegmentation::getGroundPoints() {
+std::vector<PointT> GroundSegmentation::getGroundPoints() {
   return ground_points;
+}
+
+std::vector<PointT> GroundSegmentation::getNonGroundPoints() {
+  return non_ground_points;
 }
 
 double azimuth (PointT pt) {

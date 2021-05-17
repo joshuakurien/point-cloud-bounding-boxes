@@ -1,5 +1,6 @@
 #include <euclidean_clustering.h>
 
+// TODO: Implement more optimized euclidean clustering from scratch without PCL
 EuclideanClustering::EuclideanClustering(pcl::PointCloud<PointT>::Ptr cloud) {
   pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
   tree->setInputCloud (cloud);

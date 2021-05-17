@@ -30,14 +30,15 @@ int main (int argc, char** argv) {
   cloud_filtered = filter->distance(cloud, 20);
   cloud_ground_removed = filter->ground(cloud_filtered);
 
-  EuclideanClustering clustering(cloud_ground_removed);
-  std::vector<pcl::PointCloud<PointT>::Ptr> clusters = clustering.getClusters();
+  // EuclideanClustering clustering(cloud_ground_removed);
+  // std::vector<pcl::PointCloud<PointT>::Ptr> clusters = clustering.getClusters();
   
   CloudVisualizer vis;
   vis.addCloud(cloud_filtered, "filtered_cloud", false);
-  for (int i = 0; i < clusters.size(); i++) {
-    vis.addCloud(clusters[i], "cluster " + std::to_string(i), true);
-  }
+  // for (int i = 0; i < clusters.size(); i++) {
+  //   vis.addCloud(clusters[i], "cluster " + std::to_string(i), true);
+  // }
+  vis.addCloud(cloud_ground_removed, "ground_removed", true);
 
   // Main viewer loop
   while (!vis.viewer->wasStopped ())

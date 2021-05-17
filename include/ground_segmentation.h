@@ -29,16 +29,19 @@ double azimuth(PointT pt);
 class GroundSegmentation {
 public:
   GroundSegmentation(pcl::PointCloud<PointT>::Ptr cloud);
-  std::shared_ptr<std::vector<PointT>> getGroundPoints();
+  std::vector<PointT> getGroundPoints();
+  std::vector<PointT> getNonGroundPoints();
   std::vector<pcl::PointCloud<PointT>::Ptr> getPointBins();
 private:
   void createPointBins(pcl::PointCloud<PointT>::Ptr cloud);
-  void determineGroundPoints();
-  void segmentBinGroundPoints(const Bin& bin);
+  void segmentGround();
+  void separateBinPoints(const std::vector<ground_label>& labels, const Bin& bin);
+  std::vector<ground_label> findKeyPoints(const Bin& bin);
   bool compareConsecutivePoints(const PointT & prev, const PointT & cur, bool is_labelling_ground);
   double sensor_height = -1.9;
-  std::shared_ptr<BinContainer> point_bins;
-  std::shared_ptr<std::vector<PointT>> ground_points;
+  BinContainer point_bins;
+  std::vector<PointT> ground_points;
+  std::vector<PointT> non_ground_points;
   const double kAzimuthResolutionDeg = 0.08;
   const double kMaxAngleDeg = 45.0;
   const double kMaxAngleRad = kMaxAngleDeg*M_PI/180;
