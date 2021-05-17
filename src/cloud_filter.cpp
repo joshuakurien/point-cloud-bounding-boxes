@@ -13,11 +13,12 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::removePoints(pcl::PointCloud<PointT>::
   return cloud_filtered;
 }
 
-pcl::PointCloud<PointT>::Ptr CloudFilter::distance(pcl::PointCloud<PointT>::Ptr cloud, int max_radius) {
+pcl::PointCloud<PointT>::Ptr CloudFilter::distance(pcl::PointCloud<PointT>::Ptr cloud, double max_radius, double min_radius) {
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
   for (int i = 0; i < (*cloud).size(); i++) {
     PointT point(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
-    if (std::abs(point.x) > max_radius || std::abs(point.y) > max_radius) {
+    if (sqrt(pow(point.x, 2) + pow(point.y, 2)) > max_radius || 
+        sqrt(pow(point.x, 2) + pow(point.y, 2)) < min_radius) {
       inliers->indices.push_back(i);
     }
   }

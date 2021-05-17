@@ -30,12 +30,13 @@ class GroundSegmentation {
 public:
   GroundSegmentation(pcl::PointCloud<PointT>::Ptr cloud);
   std::shared_ptr<std::vector<PointT>> getGroundPoints();
+  std::vector<pcl::PointCloud<PointT>::Ptr> getPointBins();
 private:
   void createPointBins(pcl::PointCloud<PointT>::Ptr cloud);
   void determineGroundPoints();
   void segmentBinGroundPoints(const Bin& bin);
   bool compareConsecutivePoints(const PointT & prev, const PointT & cur, bool is_labelling_ground);
-  double sensor_height = -2.1;
+  double sensor_height = -1.9;
   std::shared_ptr<BinContainer> point_bins;
   std::shared_ptr<std::vector<PointT>> ground_points;
   const double kAzimuthResolutionDeg = 0.08;

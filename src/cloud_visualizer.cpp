@@ -9,17 +9,21 @@ CloudVisualizer::CloudVisualizer() {
 }
 
 // Adds clouds to be visualized by the viewer
-void CloudVisualizer::addCloud(pcl::PointCloud<PointT>::ConstPtr cloud, std::string cloud_name, bool get_random_colour) {
+void CloudVisualizer::addCloud(pcl::PointCloud<PointT>::ConstPtr cloud, std::string cloud_name, bool get_random_colour, bool visualize_box) {
   pcl::visualization::PointCloudColorHandlerGenericField<PointT> point_cloud_color_handler(cloud, "intensity");
   viewer->addPointCloud<PointT> (cloud, point_cloud_color_handler, cloud_name);
   viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, cloud_name);
-  if (!get_random_colour) {
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 1.0, 1.0, cloud_name);
+  double r, g, b;
+  if (get_random_colour) {
+    r = static_cast<double>(rand()) / RAND_MAX;
+    g = static_cast<double>(rand()) / RAND_MAX;
+    b = static_cast<double>(rand()) / RAND_MAX;
   } else {
-    double r = static_cast<double>(rand()) / RAND_MAX;
-    double g = static_cast<double>(rand()) / RAND_MAX;
-    double b = static_cast<double>(rand()) / RAND_MAX;
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, r, g, b, cloud_name);
+    r = 1.0, g = 1.0, b = 1.0;
+  }
+  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, r, g, b, cloud_name);
+
+  if (visualize_box) {
     addBoundingBox(cloud, cloud_name + "_box", r, g, b);
   }
 }

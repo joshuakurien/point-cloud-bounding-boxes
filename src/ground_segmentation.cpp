@@ -51,11 +51,24 @@ void GroundSegmentation::createPointBins(pcl::PointCloud<PointT>::Ptr cloud) {
       return flatDistance(p1) < flatDistance(p2); 
     });
   }
-  std::cout << "lowest point: " << sensor_height << std::endl;
+}
+
+// Returns a vector with point clouds representing the separate bins/lines used for filterings
+std::vector<pcl::PointCloud<PointT>::Ptr> GroundSegmentation::getPointBins() {
+  std::vector<pcl::PointCloud<PointT>::Ptr> bin_clouds; 
+  bin_clouds.resize(point_bins->size());
+  for (int i = 0; i < point_bins->size(); i++) {
+    auto& bin = (*point_bins)[i]; 
+    pcl::PointCloud<PointT>::Ptr cur_bin_cloud (new pcl::PointCloud<PointT>);
+    cur_bin_cloud->insert(cur_bin_cloud->end(), bin.begin(), bin.end());
+    bin_clouds[i] = cur_bin_cloud;
+  }
+  return bin_clouds;
 }
 
 void GroundSegmentation::determineGroundPoints() {
   for (auto& bin : *point_bins) {
+    std::cout << bin[0].z << std::endl;
     segmentBinGroundPoints(bin);
   }
 }
@@ -65,12 +78,11 @@ void GroundSegmentation::segmentBinGroundPoints(const Bin& bin) {
   // 1 is ground, 0 is non-ground
   std::vector<ground_label> labels;
   labels.resize(bin.size());
-  // boolean used to check if we are looking for a threshold or new ground point
+  // boolean used to keep track of what we are labelling
   bool is_labelling_ground = true;
   // this initial previous point is the ground point
   PointT prev_point(0, 0, sensor_height);  
   
-  // edge case where there is only one point in a bin
   if (bin.size() == 1) {
     PointT cur_point = bin[0];
     bool compare = compareConsecutivePoints(prev_point, cur_point, is_labelling_ground);
@@ -113,8 +125,8 @@ bool GroundSegmentation::compareConsecutivePoints(const PointT & prev, const Poi
     double distance_diff = euclideanDistanceDifference(prev, cur);
     double gradient = abs(asin(height_diff/distance_diff));
     // Gradient value based on case 1 described
-    bool grad_check = gradient < kMaxAngleRad;
-    // Height check based on case 2 described
+    bool grad_check = gradient <= kMaxAngleRad;
+    // // Height check based on case 2 described
     bool height_check = height_diff <= kMinHeight;
     // // Distance check based on case 3 described
     // bool dist_check = euclideanDistance(prev_point) < euclideanDistance(cur_point);

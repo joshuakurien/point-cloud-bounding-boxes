@@ -14,7 +14,7 @@ using PointT = pcl::PointXYZI;
 class CloudFilter {
 public:
   CloudFilter();
-  pcl::PointCloud<PointT>::Ptr distance (pcl::PointCloud<PointT>::Ptr cloud, int max_radius);
+  pcl::PointCloud<PointT>::Ptr distance (pcl::PointCloud<PointT>::Ptr cloud, double max_radius, double min_radius = 5);
   pcl::PointCloud<PointT>::Ptr voxel (pcl::PointCloud<PointT>::Ptr cloud, float leaf_size);
   pcl::PointCloud<PointT>::Ptr ground (pcl::PointCloud<PointT>::Ptr cloud);
 private:
