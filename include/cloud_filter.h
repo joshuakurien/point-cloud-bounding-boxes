@@ -6,11 +6,11 @@
 #include <pcl/common/common_headers.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
+#include <ground_segmentation.h>
 
 using PointT = pcl::PointXYZI;
 
-// Class used for reducing the number points from 
-// the point cloud through various filters
+// Various filters used to remove unwatned points from point cloud 
 class CloudFilter {
 public:
   CloudFilter();

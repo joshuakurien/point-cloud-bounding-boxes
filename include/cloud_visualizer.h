@@ -1,8 +1,9 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/features/moment_of_inertia_estimation.h>
 
-// Main class used to visualize point clouds
 using PointT = pcl::PointXYZI;
+
+// Main class used to visualize point clouds
 class CloudVisualizer {
 public:
   CloudVisualizer();

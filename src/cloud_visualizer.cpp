@@ -28,6 +28,7 @@ void CloudVisualizer::addCloud(pcl::PointCloud<PointT>::ConstPtr cloud, std::str
   }
 }
 
+// Visualizes a bounding box for a given point cloud
 void CloudVisualizer::addBoundingBox(pcl::PointCloud<PointT>::ConstPtr cloud, std::string box_name, 
 double r_colour, double g_colour, double b_colour) {
   pcl::MomentOfInertiaEstimation <PointT> feature_extractor;

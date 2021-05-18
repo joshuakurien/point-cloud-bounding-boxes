@@ -1,8 +1,8 @@
 #include <cloud_filter.h>
-#include <ground_segmentation.h>
 
 CloudFilter::CloudFilter() {};
 
+// General function to remove inliers from a cloud
 pcl::PointCloud<PointT>::Ptr CloudFilter::removePoints(pcl::PointCloud<PointT>::Ptr cloud, pcl::PointIndices::Ptr inliers) {
   pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
   pcl::ExtractIndices<PointT> extract;
@@ -13,6 +13,7 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::removePoints(pcl::PointCloud<PointT>::
   return cloud_filtered;
 }
 
+// Removes points that are too far and too close from the point cloud
 pcl::PointCloud<PointT>::Ptr CloudFilter::distance(pcl::PointCloud<PointT>::Ptr cloud, double max_radius, double min_radius) {
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
   for (int i = 0; i < (*cloud).size(); i++) {
@@ -35,7 +36,7 @@ pcl::PointCloud<PointT>::Ptr CloudFilter::voxel(pcl::PointCloud<PointT>::Ptr clo
   return cloud_filtered;
 }
 
-
+// Removes ground points from point cloud
 pcl::PointCloud<PointT>::Ptr CloudFilter::ground(pcl::PointCloud<PointT>::Ptr cloud) {
   pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());

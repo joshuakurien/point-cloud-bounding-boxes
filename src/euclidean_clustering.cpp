@@ -1,6 +1,7 @@
 #include <euclidean_clustering.h>
 
 // TODO: Implement more optimized euclidean clustering from scratch without PCL
+// Main euclidean clustering algorithm implemented with PCL
 EuclideanClustering::EuclideanClustering(pcl::PointCloud<PointT>::Ptr cloud) {
   pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
   tree->setInputCloud (cloud);
@@ -27,6 +28,7 @@ EuclideanClustering::EuclideanClustering(pcl::PointCloud<PointT>::Ptr cloud) {
   }
 }
 
+// Returns output of euclidean clustering algorithm
 std::vector<pcl::PointCloud<PointT>::Ptr> EuclideanClustering::getClusters() {
   return clusters;
 }
