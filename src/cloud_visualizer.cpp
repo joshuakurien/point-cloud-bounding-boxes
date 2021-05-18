@@ -37,7 +37,9 @@ double r_colour, double g_colour, double b_colour) {
   PointT min_point, max_point;
   feature_extractor.getAABB (min_point, max_point);
   viewer->addCube (min_point.x, max_point.x, min_point.y, max_point.y, min_point.z, max_point.z, 1.0, 1.0, 0.0, box_name);
-  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, box_name);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, box_name);
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, box_name);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 3.5, box_name);
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, r_colour, g_colour, b_colour, box_name);
+ 
  }
